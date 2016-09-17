@@ -1,10 +1,9 @@
 /* Arduino SoftI2C library. 
  *
- * Copyright (C) 2013, Bernhard Nebel and Peter Fleury
- *
  * This is a very fast and very light-weight software I2C-master library 
  * written in assembler. It is based on Peter Fleury's I2C software
  * library: http://homepage.hispeed.ch/peterfleury/avr-software.html
+ *
  *
  * This Library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,12 +23,11 @@
 /* In order to use the library, you need to define SDA_PIN, SCL_PIN,
  * SDA_PORT and SCL_PORT before including this file.  Have a look at
  * http://www.arduino.cc/en/Reference/PortManipulation for finding out
- * which values to use. For example, if you use digital pin 3 (corresponding 
- * to PD3) for SDA and digital pin 13 (corresponding to PB5)
- * for SCL on a standard Arduino,
- * you have to use the following definitions: 
+ * which values to use. For example, if you use digital pin 3 for
+ * SDA and digital pin 13 for SCL you have to use the following
+ * definitions: 
  * #define SDA_PIN 3 
- * #define SDA_PORT PORTD
+ * #define SDA_PORT PORTB 
  * #define SCL_PIN 5
  * #define SCL_PORT PORTB
  *
@@ -40,21 +38,18 @@
  * - I2C_NOINTERRUPT = 1 in order to prohibit interrupts while 
  *   communicating (see below). This can be useful if you use the library 
  *   for communicationg with SMbus devices, which have timeouts.
- *   Note, however, that interrupts are disabled from issuing a start condition
+ *   Note, however, that interrupts are disabledfrom issuing a start condition
  *   until issuing a stop condition. So use this option with care!
  * - I2C_TIMEOUT = 0..10000 mssec in order to return from the I2C functions
  *   in case of a I2C bus lockup (i.e., SCL constantly low). 0 means no timeout
  */
 
 /* Changelog:
- * Version 1.2:
- * - added pragma to avoid "unused parameter warnings" (suggestion by Walter)
- * - replaced wrong license file
  * Version 1.1: 
  * - removed I2C_CLOCK_STRETCHING
  * - added I2C_TIMEOUT time in msec (0..10000) until timeout or 0 if no timeout
  * - changed i2c_init to return true iff both SDA and SCL are high
- * - changed interrupt disabling so that the previous IRQ state is restored
+ * - changed interrupt disabling so that the previous IRQ state is retored
  * Version 1.0: basic functionality
  */
 #include <avr/io.h>
@@ -62,12 +57,6 @@
 
 #ifndef _SOFTI2C_H
 #define _SOFTI2C_H   1
-
-#pragma GCC diagnostic push
-
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-
-
 
 // Init function. Needs to be called once in the beginning.
 // Returns false if SDA or SCL are low, which probably means 
@@ -90,20 +79,19 @@ void  __attribute__ ((noinline)) i2c_start_wait(uint8_t addr);
 bool __attribute__ ((noinline)) i2c_rep_start(uint8_t addr);
 
 // Issue a stop condition, freeing the bus.
-void __attribute__ ((noinline)) i2c_stop(void) asm("ass_i2c_stop");
+void __attribute__ ((used,noinline)) i2c_stop(void) asm("ass_i2c_stop");
 
 // Write one byte to the slave chip that had been addressed
 // by the previous start call. <value> is the byte to be sent.
 // Return: true if the slave replies with an "acknowledge", false otherwise
-bool __attribute__ ((noinline)) i2c_write(uint8_t value) asm("ass_i2c_write");
-
+bool __attribute__ ((used,noinline)) i2c_write(uint8_t value) asm("ass_i2c_write");
 
 // Read one byte. If <last> is true, we send a NAK after having received 
 // the byte in order to terminate the read sequence. 
 uint8_t __attribute__ ((noinline)) i2c_read(bool last);
 
 // You can set I2C_CPUFREQ independently of F_CPU if you 
-// change the CPU frequency on the fly. If you do not define it,
+// change the CPU frequency on the fly. If do not define it,
 // it will use the value of F_CPU
 #ifndef I2C_CPUFREQ
 #define I2C_CPUFREQ F_CPU
@@ -187,8 +175,8 @@ uint8_t __attribute__ ((noinline)) i2c_read(bool last);
 
  
 // Internal delay functions.
-void __attribute__ ((noinline)) i2c_delay_half(void) asm("ass_i2c_delay_half");
-void __attribute__ ((noinline)) i2c_wait_scl_high(void) asm("ass_i2c_wait_scl_high");
+void __attribute__ ((used,noinline)) i2c_delay_half(void) asm("ass_i2c_delay_half");
+void __attribute__ ((used,noinline)) i2c_wait_scl_high(void) asm("ass_i2c_wait_scl_high");
 
 void  i2c_delay_half(void)
 { // function call 3 cycles => 3C
@@ -514,9 +502,6 @@ uint8_t i2c_read(bool last)
      ); 
   return ' '; // fool the compiler!
 }
-
-
-#pragma GCC diagnostic pop
 
 #endif
 
